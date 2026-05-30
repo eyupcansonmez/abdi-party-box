@@ -130,7 +130,9 @@ const els = {
   addRule: document.querySelector("#add-rule"),
   printRules: document.querySelector("#print-rules"),
   safetyNote: document.querySelector("#safety-note"),
+  installTrigger: document.querySelector("#install-trigger"),
   installSheet: document.querySelector("#install-sheet"),
+  installSheetCopy: document.querySelector("#install-sheet-copy"),
   installApp: document.querySelector("#install-app"),
   dismissInstall: document.querySelector("#dismiss-install")
 };
@@ -376,22 +378,66 @@ function registerServiceWorker() {
   });
 }
 
+function isStandaloneApp() {
+  return window.matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+}
+
+function fallbackInstallText() {
+  const userAgent = navigator.userAgent.toLowerCase();
+  if (/iphone|ipad|ipod/.test(userAgent)) {
+    return "Safari'de Paylaş menüsünden Ana Ekrana Ekle seçeneğini kullan.";
+  }
+  if (/android/.test(userAgent)) {
+    return "Chrome menüsünden Ana ekrana ekle seçeneğini kullan.";
+  }
+  return "Tarayıcı menüsünden Uygulamayı yükle veya Ana ekrana ekle seçeneğini kullan.";
+}
+
+function showInstallSheet(message, buttonText = "Tamam") {
+  if (!els.installSheet || !els.installSheetCopy || !els.installApp) return;
+  els.installSheetCopy.textContent = message;
+  els.installApp.textContent = buttonText;
+  els.installSheet.hidden = false;
+}
+
+async function requestInstall() {
+  if (isStandaloneApp()) return;
+  touchPulse(10);
+
+  if (!deferredInstallPrompt) {
+    showInstallSheet(fallbackInstallText());
+    return;
+  }
+
+  els.installSheet.hidden = true;
+  deferredInstallPrompt.prompt();
+  await deferredInstallPrompt.userChoice;
+  deferredInstallPrompt = null;
+}
+
 function setupInstallPrompt() {
   if (!els.installSheet || !els.installApp || !els.dismissInstall) return;
-  if (window.matchMedia("(display-mode: standalone)").matches || navigator.standalone) return;
+  if (isStandaloneApp()) {
+    if (els.installTrigger) {
+      els.installTrigger.hidden = true;
+    }
+    return;
+  }
+
+  els.installTrigger?.addEventListener("click", requestInstall);
 
   window.addEventListener("beforeinstallprompt", (event) => {
     event.preventDefault();
     deferredInstallPrompt = event;
-    els.installSheet.hidden = false;
+    showInstallSheet("Telefona uygulama gibi ekle.", "Yükle");
   });
 
-  els.installApp.addEventListener("click", async () => {
-    if (!deferredInstallPrompt) return;
-    els.installSheet.hidden = true;
-    deferredInstallPrompt.prompt();
-    await deferredInstallPrompt.userChoice;
-    deferredInstallPrompt = null;
+  els.installApp.addEventListener("click", () => {
+    if (!deferredInstallPrompt) {
+      els.installSheet.hidden = true;
+      return;
+    }
+    requestInstall();
   });
 
   els.dismissInstall.addEventListener("click", () => {

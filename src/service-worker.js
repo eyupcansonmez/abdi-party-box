@@ -1,4 +1,4 @@
-const CACHE_NAME = "abdi-party-box-v2";
+const CACHE_NAME = "abdi-party-box-v3";
 const APP_SHELL = [
   "./",
   "./index.html",
