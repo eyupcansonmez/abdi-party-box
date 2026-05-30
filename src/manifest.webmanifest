@@ -1,0 +1,26 @@
+{
+  "name": "Abdi Party Box",
+  "short_name": "Abdi Party",
+  "description": "Abdi kart kurallariyla hizli kutu parti oyunu.",
+  "start_url": "./index.html",
+  "scope": "./",
+  "display": "standalone",
+  "orientation": "portrait",
+  "background_color": "#f3ede1",
+  "theme_color": "#0f6f5b",
+  "categories": ["games", "entertainment"],
+  "icons": [
+    {
+      "src": "./icons/icon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "any"
+    },
+    {
+      "src": "./icons/maskable.svg",
+      "sizes": "any",
+      "type": "image/svg+xml",
+      "purpose": "maskable"
+    }
+  ]
+}

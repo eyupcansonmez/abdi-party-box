@@ -1,0 +1,8 @@
+{
+  "appId": "com.abdipartybox.app",
+  "appName": "Abdi Party Box",
+  "webDir": "dist",
+  "server": {
+    "androidScheme": "https"
+  }
+}

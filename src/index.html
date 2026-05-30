@@ -1,0 +1,248 @@
+<!doctype html>
+<html lang="tr">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+    <meta
+      name="description"
+      content="Abdi kurallarından uyarlanmış hızlı oynanan kutu parti oyunu."
+    />
+    <meta name="theme-color" content="#0f6f5b" />
+    <meta name="mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-capable" content="yes" />
+    <meta name="apple-mobile-web-app-title" content="Abdi Party" />
+    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+    <title>Abdi Party Box</title>
+    <link rel="manifest" href="./manifest.webmanifest" />
+    <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
+    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <main class="app-shell">
+      <section class="hero-band" aria-labelledby="app-title">
+        <div class="brand-lockup">
+          <p class="overline">Kutu parti oyunu</p>
+          <h1 id="app-title">Abdi Party Box</h1>
+          <p class="hero-copy">
+            52 kartlık Abdi ritüeli, masa kuralları ve güvenli parti modu ile
+            tek ekranda.
+          </p>
+        </div>
+
+        <div class="box-visual" aria-hidden="true">
+          <div class="box-lid">
+            <span>A</span>
+            <span>10</span>
+            <span>J</span>
+          </div>
+          <div class="box-core">
+            <strong>ABDI</strong>
+            <small>PARTY BOX</small>
+          </div>
+          <div class="box-shadow"></div>
+        </div>
+      </section>
+
+      <section class="setup-grid" aria-label="Oyun kurulumu">
+        <form class="panel player-panel" id="player-form">
+          <div class="panel-heading">
+            <div>
+              <p class="overline">Oyuncular</p>
+              <h2>Masayı kur</h2>
+            </div>
+            <span class="pill" id="player-count">0/8</span>
+          </div>
+
+          <div class="player-list" id="player-list"></div>
+
+          <div class="add-player-row">
+            <label class="sr-only" for="player-name">Oyuncu adı</label>
+            <input id="player-name" maxlength="18" placeholder="Oyuncu adı" />
+            <button class="icon-button" type="submit" aria-label="Oyuncu ekle">
+              <span aria-hidden="true">+</span>
+            </button>
+          </div>
+
+          <div class="mode-row" aria-label="Ceza modu">
+            <button class="segmented is-active" type="button" data-mode="task">
+              Ceza
+            </button>
+            <button class="segmented" type="button" data-mode="sip">
+              Yudum
+            </button>
+            <button class="segmented" type="button" data-mode="shot">
+              Shot
+            </button>
+          </div>
+
+          <p class="safety-note" id="safety-note">
+            Shot modu yalnızca 18+ oyuncular ve sorumlu tüketim içindir.
+          </p>
+        </form>
+
+        <aside class="panel quick-rules" aria-labelledby="quick-title">
+          <div class="panel-heading">
+            <div>
+              <p class="overline">Kılavuz</p>
+              <h2 id="quick-title">Kutu içeriği</h2>
+            </div>
+            <button class="tool-button" type="button" id="print-rules">
+              <span aria-hidden="true">P</span>
+              Yazdır
+            </button>
+          </div>
+
+          <div class="kit-strip">
+            <span>52 Kart</span>
+            <span>2-8 Oyuncu</span>
+            <span>13 Görev</span>
+          </div>
+
+          <ol class="compact-steps">
+            <li>Oyuncuları ekle ve desteyi başlat.</li>
+            <li>Sıradaki oyuncu kart çeker.</li>
+            <li>Kart görevi uygulanır; gerekiyorsa ceza puanı yazılır.</li>
+            <li>10 gelirse masa kuralı eklenir.</li>
+          </ol>
+        </aside>
+      </section>
+
+      <section class="game-layout" aria-label="Oyun masası">
+        <section class="table-panel" aria-labelledby="table-title">
+          <div class="table-top">
+            <div class="table-header">
+              <div>
+                <p class="overline">Sıradaki</p>
+                <h2 id="table-title">Oyunu başlat</h2>
+              </div>
+              <div class="deck-meter">
+                <span id="deck-count">52</span>
+                <small>kart</small>
+              </div>
+            </div>
+
+            <div class="card-stage">
+              <button class="deck-button" type="button" id="draw-card">
+                <span class="deck-stack" aria-hidden="true"></span>
+                <span>Kart çek</span>
+              </button>
+
+              <article class="playing-card card-back" id="current-card">
+                <span class="card-rank">?</span>
+                <span class="card-suit">?</span>
+                <strong>ABDI</strong>
+                <small>kart bekleniyor</small>
+              </article>
+            </div>
+
+            <div class="action-panel" id="action-panel">
+              <p class="overline">Görev</p>
+              <h3>Masayı kurup ilk kartı çek.</h3>
+              <p>Oyun başladıktan sonra görevler burada görünecek.</p>
+            </div>
+
+            <div class="rule-maker" id="rule-maker" hidden>
+              <label for="rule-input">Yeni masa kuralı</label>
+              <div class="add-player-row">
+                <input
+                  id="rule-input"
+                  maxlength="80"
+                  placeholder="Örn. isimle hitap etmek yasak"
+                />
+                <button class="icon-button" type="button" id="add-rule" aria-label="Kural ekle">
+                  <span aria-hidden="true">+</span>
+                </button>
+              </div>
+            </div>
+
+            <div class="game-controls">
+              <button class="tool-button primary" type="button" id="start-game">
+                <span aria-hidden="true">▶</span>
+                Başlat
+              </button>
+              <button class="tool-button" type="button" id="reset-deck">
+                <span aria-hidden="true">↻</span>
+                Yeni deste
+              </button>
+              <button class="tool-button" type="button" id="undo-draw">
+                <span aria-hidden="true">↶</span>
+                Geri al
+              </button>
+            </div>
+          </div>
+        </section>
+
+        <aside class="side-stack">
+          <section class="panel scoreboard" aria-labelledby="score-title">
+            <div class="panel-heading">
+              <div>
+                <p class="overline">Skor</p>
+                <h2 id="score-title">Ceza puanları</h2>
+              </div>
+            </div>
+            <div class="score-list" id="score-list"></div>
+          </section>
+
+          <section class="panel active-rules" aria-labelledby="active-rules-title">
+            <div class="panel-heading">
+              <div>
+                <p class="overline">Masa</p>
+                <h2 id="active-rules-title">Aktif kurallar</h2>
+              </div>
+            </div>
+            <div class="empty-state" id="empty-rules">Henüz kural yok.</div>
+            <ul class="active-rule-list" id="active-rule-list"></ul>
+          </section>
+        </aside>
+      </section>
+
+      <section class="rules-board" aria-labelledby="rules-title">
+        <div class="section-heading">
+          <div>
+            <p class="overline">Klasik Abdi destesi</p>
+            <h2 id="rules-title">Kart görevleri</h2>
+          </div>
+          <p>
+            5 ve 6 kartları klasik anlatımda cinsiyetlere ayrılır; masa isterse
+            bunları iki takıma çevirebilir.
+          </p>
+        </div>
+        <div class="rule-grid" id="rule-grid"></div>
+      </section>
+
+      <section class="history-band" aria-labelledby="history-title">
+        <div class="section-heading">
+          <div>
+            <p class="overline">Akış</p>
+            <h2 id="history-title">Son çekilenler</h2>
+          </div>
+        </div>
+        <div class="history-list" id="history-list"></div>
+      </section>
+    </main>
+
+    <aside class="install-sheet" id="install-sheet" aria-live="polite" hidden>
+      <img src="./icons/icon.svg" alt="" />
+      <div>
+        <strong>Abdi Party Box</strong>
+        <span>Telefona uygulama gibi ekle.</span>
+      </div>
+      <button class="tool-button primary" type="button" id="install-app">Yükle</button>
+      <button class="icon-button ghost" type="button" id="dismiss-install" aria-label="Kurulum kartını kapat">
+        <span aria-hidden="true">×</span>
+      </button>
+    </aside>
+
+    <template id="player-row-template">
+      <div class="player-row">
+        <input maxlength="18" />
+        <button class="icon-button danger" type="button" aria-label="Oyuncuyu sil">
+          <span aria-hidden="true">−</span>
+        </button>
+      </div>
+    </template>
+
+    <script type="module" src="./app.js"></script>
+  </body>
+</html>

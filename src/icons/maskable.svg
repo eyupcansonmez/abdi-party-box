@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" role="img" aria-label="Abdi Party Box maskable icon">
+  <rect width="512" height="512" fill="#0f6f5b"/>
+  <circle cx="256" cy="256" r="210" fill="#f26a4b"/>
+  <rect x="137" y="118" width="238" height="276" rx="28" fill="#fffaf0" stroke="#17202a" stroke-width="14" transform="rotate(-6 256 256)"/>
+  <text x="256" y="318" text-anchor="middle" font-family="Arial, sans-serif" font-size="132" font-weight="900" fill="#17202a">A</text>
+  <path d="M173 361h166" stroke="#f6c453" stroke-width="24" stroke-linecap="round"/>
+</svg>
