@@ -1,4 +1,4 @@
-const CACHE_NAME = "abdi-party-box-v3";
+const CACHE_NAME = "abdi-party-box-v15";
 const APP_SHELL = [
   "./",
   "./index.html",
@@ -6,7 +6,11 @@ const APP_SHELL = [
   "./app.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
-  "./icons/maskable.svg"
+  "./icons/maskable.svg",
+  "./icons/icon-192.png",
+  "./icons/icon-512.png",
+  "./icons/maskable-512.png",
+  "./icons/apple-touch-icon.png"
 ];
 
 self.addEventListener("install", (event) => {

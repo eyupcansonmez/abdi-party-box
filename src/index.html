@@ -5,33 +5,114 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
     <meta
       name="description"
-      content="Abdi kurallarından uyarlanmış hızlı oynanan kutu parti oyunu."
+      content="Kategori sekmeli kutu, party, tahmin ve gizli rol oyunlariyla hizli dijital parti kutusu."
     />
     <meta name="theme-color" content="#0f6f5b" />
     <meta name="mobile-web-app-capable" content="yes" />
     <meta name="apple-mobile-web-app-capable" content="yes" />
-    <meta name="apple-mobile-web-app-title" content="Abdi Party" />
+    <meta name="apple-mobile-web-app-title" content="Party Box" />
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
-    <title>Abdi Party Box</title>
+    <title>Party Box</title>
     <link rel="manifest" href="./manifest.webmanifest" />
     <link rel="icon" href="./icons/icon.svg" type="image/svg+xml" />
-    <link rel="apple-touch-icon" href="./icons/icon.svg" />
+    <link rel="apple-touch-icon" sizes="180x180" href="./icons/apple-touch-icon.png" />
     <link rel="stylesheet" href="./styles.css" />
   </head>
   <body>
+    <aside class="intro-screen" id="intro-screen" aria-label="Party Box açılışı">
+      <div class="intro-mark" aria-hidden="true">
+        <span class="intro-card intro-card-a">A</span>
+        <span class="intro-card intro-card-b">10</span>
+        <span class="intro-card intro-card-c">J</span>
+        <div class="intro-box-lid">
+          <span></span>
+          <span></span>
+          <span></span>
+        </div>
+        <div class="intro-box-core">
+          <strong>PARTY</strong>
+          <small>BOX</small>
+        </div>
+        <div class="intro-glow"></div>
+      </div>
+      <strong class="intro-title">Party Box</strong>
+      <span class="intro-credit">created by eyupcansonmez</span>
+      <div class="intro-loader" aria-hidden="true">
+        <span></span>
+      </div>
+    </aside>
+
+    <button class="menu-fab" type="button" id="menu-toggle" aria-label="Oyun menüsünü aç">
+      <span></span>
+      <span></span>
+      <span></span>
+    </button>
+
+    <div class="drawer-backdrop" id="drawer-backdrop" hidden></div>
+    <aside class="game-drawer" id="game-drawer" aria-label="Oyun menüsü" hidden>
+      <div class="drawer-head">
+        <div>
+          <p class="overline">Party Box</p>
+          <h2>Oyun kütüphanesi</h2>
+        </div>
+        <button class="icon-button ghost" type="button" id="drawer-close" aria-label="Menüyü kapat">
+          <span aria-hidden="true">×</span>
+        </button>
+      </div>
+
+      <button class="drawer-home" type="button" data-menu-home>Ana seçim ekranı</button>
+
+      <div class="drawer-section">
+        <strong>Görev Party</strong>
+        <button type="button" data-menu-target="friends" data-menu-category="party">Arkadaş Masası</button>
+        <button type="button" data-menu-target="confession" data-menu-category="party">Sır Açma</button>
+        <button type="button" data-menu-target="tasks" data-menu-category="party">Yap Ya da Ceza</button>
+        <button type="button" data-menu-target="truthdare" data-menu-category="party">Doğruluk / Cesaret</button>
+        <button type="button" data-menu-target="couples" data-menu-category="party">İki Kişilik Hikaye</button>
+      </div>
+
+      <div class="drawer-section">
+        <strong>Tahmin & Anlatım</strong>
+        <button type="button" data-menu-target="tell" data-menu-category="guess">Anlat Bakalım</button>
+        <button type="button" data-menu-target="guess" data-menu-category="guess">Bil Bakalım</button>
+        <button type="button" data-menu-target="whoami" data-menu-category="guess">Ben Kimim</button>
+      </div>
+
+      <div class="drawer-section">
+        <strong>Gizli Roller</strong>
+        <button type="button" data-menu-target="spy" data-menu-category="hidden">Spy</button>
+        <button type="button" data-menu-target="vampire" data-menu-category="hidden">Vampir Köylü</button>
+        <button type="button" data-menu-target="undercover" data-menu-category="hidden">Undercover</button>
+      </div>
+
+      <div class="drawer-section">
+        <strong>Kutu & Masa</strong>
+        <button type="button" data-menu-target="abdi" data-menu-category="table">Abdi</button>
+        <button type="button" data-menu-target="beerPong" data-menu-category="table">Beer Pong</button>
+      </div>
+
+      <div class="drawer-section">
+        <strong>Premium</strong>
+        <button type="button" data-menu-target="premium" data-menu-category="premium">Gece Kilidi</button>
+      </div>
+    </aside>
+
     <main class="app-shell">
       <section class="hero-band" aria-labelledby="app-title">
         <div class="brand-lockup">
           <p class="overline">Kutu parti oyunu</p>
-          <h1 id="app-title">Abdi Party Box</h1>
+          <h1 id="app-title">Party Box</h1>
           <p class="hero-copy">
-            52 kartlık Abdi ritüeli, masa kuralları ve güvenli parti modu ile
-            tek ekranda.
+            Kutu oyunları, görev party modları, tahmin oyunları ve gizli rollerle
+            masayı hızlıca oyuna sokan tek ekran.
           </p>
           <div class="hero-actions">
             <button class="tool-button install-action" type="button" id="install-trigger">
               <img src="./icons/icon.svg" alt="" />
               Telefona ekle
+            </button>
+            <button class="icon-button sound-toggle" type="button" id="sound-toggle" aria-label="Sesi kapat">
+              <span aria-hidden="true">♪</span>
             </button>
           </div>
         </div>
@@ -43,10 +124,129 @@
             <span>J</span>
           </div>
           <div class="box-core">
-            <strong>ABDI</strong>
-            <small>PARTY BOX</small>
+            <strong>PARTY</strong>
+            <small>BOX</small>
           </div>
           <div class="box-shadow"></div>
+        </div>
+      </section>
+
+      <section class="mode-board" aria-labelledby="mode-title">
+        <div class="section-heading">
+          <div>
+            <p class="overline">Oyun modları</p>
+            <h2 id="mode-title">Masaya göre oyunu seç</h2>
+          </div>
+          <p>
+            Kategoriyi seç, oyunu aç, telefonu masanın ortasına koy. Abdi klasik
+            kart oyunu olarak kalır; yeni oyunlar kendi ekranlarına gider.
+          </p>
+        </div>
+
+        <div class="category-tabs" role="tablist" aria-label="Oyun kategorileri">
+          <button class="category-tab is-active" type="button" data-category-target="party">
+            Görev Party
+          </button>
+          <button class="category-tab" type="button" data-category-target="guess">
+            Tahmin & Anlatım
+          </button>
+          <button class="category-tab" type="button" data-category-target="hidden">
+            Gizli Roller
+          </button>
+          <button class="category-tab" type="button" data-category-target="table">
+            Kutu & Masa
+          </button>
+          <button class="category-tab" type="button" data-category-target="premium">
+            Premium
+          </button>
+        </div>
+
+        <div class="library-note">
+          <div>
+            <strong>14 oyun</strong>
+            <span>Görev, anlatım, gizli rol ve masa yardımcısı.</span>
+          </div>
+          <div>
+            <strong>Tek telefon</strong>
+            <span>Gizli roller sırayla gösterilir, oyun masada kalır.</span>
+          </div>
+          <div>
+            <strong>Oyun odası</strong>
+            <span>Seçtiğin oyun ayrı ekranda, kendi kurallarıyla açılır.</span>
+          </div>
+        </div>
+
+        <div class="mode-grid">
+          <button class="mode-card is-featured" type="button" data-mode-target="friends" data-category="party">
+            <span class="mode-kicker">Yeni</span>
+            <strong>Arkadaş Masası</strong>
+            <small>Isınma, kahkaha ve mini meydan okumalar.</small>
+          </button>
+          <button class="mode-card" type="button" data-mode-target="confession" data-category="party">
+            <span class="mode-kicker">İtiraf</span>
+            <strong>Sır Açma</strong>
+            <small>Yumuşak başlayıp masayı konuşturan sorular.</small>
+          </button>
+          <button class="mode-card is-wild" type="button" data-mode-target="tasks" data-category="party">
+            <span class="mode-kicker">Görev</span>
+            <strong>Yap Ya da Ceza</strong>
+            <small>Daha zor, telefonlu ve sahneli görevler.</small>
+          </button>
+          <button class="mode-card" type="button" data-mode-target="truthdare" data-category="party">
+            <span class="mode-kicker">Klasik+</span>
+            <strong>Doğruluk / Cesaret</strong>
+            <small>Her kartta iki seçenek, kaçış yok.</small>
+          </button>
+          <button class="mode-card" type="button" data-mode-target="couples" data-category="party">
+            <span class="mode-kicker">Sevgililer</span>
+            <strong>İki Kişilik Hikaye</strong>
+            <small>Tatlı tahminler, anılar ve yakınlaşma kartları.</small>
+          </button>
+          <button class="mode-card is-brainy" type="button" data-mode-target="tell" data-category="guess">
+            <span class="mode-kicker">Süreli</span>
+            <strong>Anlat Bakalım</strong>
+            <small>Tabu tarzı yasak kelimeli anlatım turu.</small>
+          </button>
+          <button class="mode-card is-brainy" type="button" data-mode-target="guess" data-category="guess">
+            <span class="mode-kicker">Bilgi</span>
+            <strong>Bil Bakalım</strong>
+            <small>İpucu, cevap açma ve hızlı puan.</small>
+          </button>
+          <button class="mode-card is-brainy" type="button" data-mode-target="whoami" data-category="guess">
+            <span class="mode-kicker">Kimlik</span>
+            <strong>Ben Kimim</strong>
+            <small>Evet-hayır sorularıyla gizli kimliği bul.</small>
+          </button>
+          <button class="mode-card is-secret" type="button" data-mode-target="spy" data-category="hidden">
+            <span class="mode-kicker">Sosyal Dedüksiyon</span>
+            <strong>Spy</strong>
+            <small>Herkes mekanı bilir; casus bilmez.</small>
+          </button>
+          <button class="mode-card is-secret" type="button" data-mode-target="vampire" data-category="hidden">
+            <span class="mode-kicker">Gece / Gündüz</span>
+            <strong>Vampir Köylü</strong>
+            <small>Rolleri dağıt, geceyi yönet, köyü kandır.</small>
+          </button>
+          <button class="mode-card is-secret" type="button" data-mode-target="undercover" data-category="hidden">
+            <span class="mode-kicker">Kelime Dedüksiyonu</span>
+            <strong>Undercover</strong>
+            <small>Benzer kelimelerle gizli ajanı bul.</small>
+          </button>
+          <button class="mode-card" type="button" data-mode-target="abdi" data-category="table">
+            <span class="mode-kicker">Klasik</span>
+            <strong>Abdi</strong>
+            <small>Mevcut iskambil kurallarıyla aynı oyun.</small>
+          </button>
+          <button class="mode-card is-table" type="button" data-mode-target="beerPong" data-category="table">
+            <span class="mode-kicker">Masa</span>
+            <strong>Beer Pong</strong>
+            <small>Kupa takibi, skor ve house rule yardımcısı.</small>
+          </button>
+          <button class="mode-card is-locked" type="button" data-mode-target="premium" data-category="premium">
+            <span class="mode-kicker">+18 Premium</span>
+            <strong>Gece Kilidi</strong>
+            <small>Paralı mod. İçerik ve satın alma akışı sonra eklenecek.</small>
+          </button>
         </div>
       </section>
 
@@ -91,7 +291,7 @@
           <div class="panel-heading">
             <div>
               <p class="overline">Kılavuz</p>
-              <h2 id="quick-title">Kutu içeriği</h2>
+              <h2 id="quick-title">Oyun akışı</h2>
             </div>
             <button class="tool-button" type="button" id="print-rules">
               <span aria-hidden="true">P</span>
@@ -100,21 +300,126 @@
           </div>
 
           <div class="kit-strip">
-            <span>52 Kart</span>
+            <span>14 Oyun</span>
             <span>2-8 Oyuncu</span>
-            <span>13 Görev</span>
+            <span>Kategori Sekmeleri</span>
           </div>
 
           <ol class="compact-steps">
-            <li>Oyuncuları ekle ve desteyi başlat.</li>
-            <li>Sıradaki oyuncu kart çeker.</li>
-            <li>Kart görevi uygulanır; gerekiyorsa ceza puanı yazılır.</li>
-            <li>10 gelirse masa kuralı eklenir.</li>
+            <li>Oyuncuları ekle ve kategori sekmesinden oyun seç.</li>
+            <li>Görev ve tahmin oyunlarında süreli kartlarla ilerle.</li>
+            <li>Gizli rol oyunlarında telefonu sırayla elden ele geçir.</li>
+            <li>Kutu & masa oyunlarında Abdi veya Beer Pong yardımcısını aç.</li>
           </ol>
         </aside>
       </section>
 
-      <section class="game-layout" aria-label="Oyun masası">
+      <section class="story-game mode-screen" id="story-game" aria-labelledby="story-title" hidden>
+        <div class="story-shell">
+          <div class="story-topline">
+            <div>
+              <p class="overline" id="story-kicker">Mod seçildi</p>
+              <h2 id="story-title">Masa Hikayesi</h2>
+            </div>
+            <button class="tool-button compact" type="button" id="back-to-modes">
+              Modlar
+            </button>
+          </div>
+
+          <div class="story-meta" id="story-meta"></div>
+
+          <article class="story-card" id="story-card">
+            <span class="story-card-tag">Hazır</span>
+            <h3>Bir mod seç ve ilk kartı çek.</h3>
+            <p>Konuşmayı başlatan görevler burada görünecek.</p>
+          </article>
+
+          <div class="story-controls">
+            <button class="tool-button primary" type="button" id="story-next">
+              <span aria-hidden="true">▶</span>
+              Kart çek
+            </button>
+            <button class="tool-button" type="button" id="story-player">
+              <span aria-hidden="true">↺</span>
+              Oyuncu seç
+            </button>
+          </div>
+
+          <div class="story-progress" aria-label="Oyun enerjisi">
+            <span>Isınma</span>
+            <span>Açılma</span>
+            <span>Hikaye</span>
+          </div>
+          <p class="story-guard">
+            Telefon kartlarında özel içerik paylaşmak veya mesaj göndermek oyuncunun onayına bağlıdır.
+            Pas geçen kişi masanın seçtiği ceza modunu alır.
+          </p>
+        </div>
+
+        <aside class="panel story-side">
+          <div class="panel-heading">
+            <div>
+              <p class="overline">Akış</p>
+              <h2>Son kartlar</h2>
+            </div>
+          </div>
+          <div class="story-history" id="story-history"></div>
+        </aside>
+      </section>
+
+      <section class="digital-game mode-screen" id="digital-game" aria-labelledby="digital-title" hidden>
+        <div class="digital-shell">
+          <div class="story-topline">
+            <div>
+              <p class="overline" id="digital-kicker">Oyun seçildi</p>
+              <h2 id="digital-title">Mini oyun</h2>
+            </div>
+            <button class="tool-button compact" type="button" id="digital-back">Modlar</button>
+          </div>
+
+          <div class="digital-meta" id="digital-meta"></div>
+
+          <div class="digital-hud">
+            <div class="digital-timer" id="digital-timer">
+              <span>--</span>
+              <small>süre</small>
+            </div>
+            <div class="digital-score" id="digital-score"></div>
+          </div>
+
+          <article class="digital-stage" id="digital-stage"></article>
+
+          <div class="digital-controls">
+            <button class="tool-button primary" type="button" id="digital-primary">Başlat</button>
+            <button class="tool-button" type="button" id="digital-secondary">Sonraki</button>
+            <button class="tool-button" type="button" id="digital-tertiary">Pas</button>
+          </div>
+        </div>
+
+        <aside class="panel digital-side">
+          <div class="panel-heading">
+            <div>
+              <p class="overline">Kurallar</p>
+              <h2>Oyun rehberi</h2>
+            </div>
+          </div>
+          <div class="digital-guide" id="digital-guide"></div>
+        </aside>
+      </section>
+
+      <section class="premium-screen mode-screen" id="premium-screen" hidden>
+        <div class="premium-lock">
+          <p class="overline">+18 Premium</p>
+          <h2>Gece Kilidi yakında</h2>
+          <p>
+            Bu mod paralı olacak. İçerik ve ödeme akışını sonra yazacağız; şimdilik
+            tıklama buraya yönlendirir.
+          </p>
+          <button class="tool-button" type="button" id="premium-back">Modlara dön</button>
+        </div>
+      </section>
+
+      <section class="game-layout mode-screen" id="abdi-game" aria-label="Oyun masası" hidden>
         <section class="table-panel" aria-labelledby="table-title">
           <div class="table-top">
             <div class="table-header">
@@ -122,6 +427,7 @@
                 <p class="overline">Sıradaki</p>
                 <h2 id="table-title">Oyunu başlat</h2>
               </div>
+              <button class="tool-button compact" type="button" id="abdi-back">Modlar</button>
               <div class="deck-meter">
                 <span id="deck-count">52</span>
                 <small>kart</small>
@@ -203,7 +509,7 @@
         </aside>
       </section>
 
-      <section class="rules-board" aria-labelledby="rules-title">
+      <section class="rules-board mode-screen" id="abdi-rules" aria-labelledby="rules-title" hidden>
         <div class="section-heading">
           <div>
             <p class="overline">Klasik Abdi destesi</p>
@@ -217,7 +523,7 @@
         <div class="rule-grid" id="rule-grid"></div>
       </section>
 
-      <section class="history-band" aria-labelledby="history-title">
+      <section class="history-band mode-screen" id="abdi-history" aria-labelledby="history-title" hidden>
         <div class="section-heading">
           <div>
             <p class="overline">Akış</p>
@@ -238,7 +544,7 @@
     <aside class="install-sheet" id="install-sheet" aria-live="polite" hidden>
       <img src="./icons/icon.svg" alt="" />
       <div>
-        <strong>Abdi Party Box</strong>
+        <strong>Party Box</strong>
         <span id="install-sheet-copy">Telefona uygulama gibi ekle.</span>
       </div>
       <button class="tool-button primary" type="button" id="install-app">Yükle</button>
