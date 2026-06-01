@@ -1,9 +1,10 @@
-const CACHE_NAME = "abdi-party-box-v16";
+const CACHE_NAME = "abdi-party-box-v22";
 const APP_SHELL = [
   "./",
   "./index.html",
   "./styles.css",
   "./app.js",
+  "./content-packs.js",
   "./manifest.webmanifest",
   "./icons/icon.svg",
   "./icons/maskable.svg",

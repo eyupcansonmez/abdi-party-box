@@ -1,3 +1,5 @@
+import { contentPacks } from "./content-packs.js";
+
 const suits = [
   { symbol: "♠", name: "Maça", color: "black" },
   { symbol: "♥", name: "Kupa", color: "red" },
@@ -662,11 +664,11 @@ const digitalGames = {
     type: "quiz",
     kicker: "Tahmin & Bilgi",
     title: "Bil Bakalım",
-    meta: ["45 sn", "İpucu var", "Cevap açılır"],
+    meta: ["Sayı tahmini", "En yakın kazanır", "Cevap açılır"],
     guide: [
       "Karttaki soruyu masaya oku.",
-      "Takılan oyuncu ipucunu kullanabilir.",
-      "Cevap açıldıktan sonra doğru bilen oyuncuya puan yazılır."
+      "Herkes veya her takım sayısal bir tahmin söyler.",
+      "Cevap açıldıktan sonra gerçek değere en yakın tahmine puan yazılır."
     ],
     cards: [
       { question: "Bir partide en hızlı yayılan şey nedir?", hint: "Yenmez, içilmez, herkes büyütür.", answer: "Dedikodu" },
@@ -778,6 +780,48 @@ const digitalGames = {
   }
 };
 
+Object.entries(contentPacks.story).forEach(([mode, cards]) => {
+  storyModes[mode].cards.push(...cards);
+});
+
+digitalGames.tell.cards = contentPacks.digital.tell;
+digitalGames.guess.cards = contentPacks.digital.guess;
+digitalGames.whoami.cards = contentPacks.digital.whoami;
+
+const difficultyLabels = {
+  easy: "Kolay",
+  medium: "Orta",
+  hard: "Zor"
+};
+
+const tutorialSteps = [
+  {
+    title: "Masayı kur",
+    copy: "Ana ekranda oyuncu isimlerini ekle. İsimler hem sıra seçimi hem de takım oyunlarında skor için kullanılır.",
+    tone: "players"
+  },
+  {
+    title: "Takımları dağıt",
+    copy: "Takımlar kutusunda Karıştır'a bas. A ve B takımı isimlerle görünür; tahmin ve masa oyunlarında puanlar bu takımlara yazılır.",
+    tone: "teams"
+  },
+  {
+    title: "Kategori seç",
+    copy: "Görev Party, Tahmin & Anlatım, Gizli Roller veya Kutu & Masa sekmesinden oyunu seç. Sol üst menüden de her oyuna hızlı geçebilirsin.",
+    tone: "library"
+  },
+  {
+    title: "Oyun odasına gir",
+    copy: "Seçtiğin oyun kendi ekranında açılır. Kart çek, cevap aç, rol göster veya faz ilerlet butonları o oyuna göre değişir.",
+    tone: "room"
+  },
+  {
+    title: "Skoru ve akışı yönet",
+    copy: "Bil Bakalım'da tahminleri girip kazananı sistemden gör. Anlat Bakalım ve Ben Kimim'de zorluk seçip takım puanlarını işle.",
+    tone: "score"
+  }
+];
+
 const penaltyLabels = {
   task: "ceza",
   sip: "yudum",
@@ -791,6 +835,7 @@ const state = {
     { id: crypto.randomUUID(), name: "Zeynep", score: 0 },
     { id: crypto.randomUUID(), name: "Can", score: 0 }
   ],
+  teams: { a: [], b: [] },
   deck: [],
   discard: [],
   history: [],
@@ -812,6 +857,10 @@ const state = {
   digitalAssignments: [],
   digitalPhaseIndex: 0,
   digitalScore: { a: 0, b: 0 },
+  digitalDifficulty: "medium",
+  digitalGuesses: {},
+  digitalWinner: null,
+  digitalHintVisible: false,
   digitalSeconds: 0,
   beerPong: null,
   vampire: null,
@@ -827,6 +876,9 @@ const els = {
   playerName: document.querySelector("#player-name"),
   playerList: document.querySelector("#player-list"),
   playerCount: document.querySelector("#player-count"),
+  shuffleTeams: document.querySelector("#shuffle-teams"),
+  teamAList: document.querySelector("#team-a-list"),
+  teamBList: document.querySelector("#team-b-list"),
   scoreList: document.querySelector("#score-list"),
   ruleGrid: document.querySelector("#rule-grid"),
   activeRuleList: document.querySelector("#active-rule-list"),
@@ -859,6 +911,8 @@ const els = {
   digitalKicker: document.querySelector("#digital-kicker"),
   digitalTitle: document.querySelector("#digital-title"),
   digitalMeta: document.querySelector("#digital-meta"),
+  digitalDifficulty: document.querySelector("#digital-difficulty"),
+  difficultyButtons: document.querySelectorAll("[data-difficulty]"),
   digitalTimer: document.querySelector("#digital-timer"),
   digitalScore: document.querySelector("#digital-score"),
   digitalStage: document.querySelector("#digital-stage"),
@@ -866,6 +920,7 @@ const els = {
   digitalPrimary: document.querySelector("#digital-primary"),
   digitalSecondary: document.querySelector("#digital-secondary"),
   digitalTertiary: document.querySelector("#digital-tertiary"),
+  digitalQuaternary: document.querySelector("#digital-quaternary"),
   digitalBack: document.querySelector("#digital-back"),
   premiumScreen: document.querySelector("#premium-screen"),
   abdiGame: document.querySelector("#abdi-game"),
@@ -885,7 +940,16 @@ const els = {
   installSheetCopy: document.querySelector("#install-sheet-copy"),
   installApp: document.querySelector("#install-app"),
   dismissInstall: document.querySelector("#dismiss-install"),
-  soundToggle: document.querySelector("#sound-toggle")
+  soundToggle: document.querySelector("#sound-toggle"),
+  tutorialTrigger: document.querySelector("#tutorial-trigger"),
+  tutorialOverlay: document.querySelector("#tutorial-overlay"),
+  tutorialClose: document.querySelector("#tutorial-close"),
+  tutorialTitle: document.querySelector("#tutorial-title"),
+  tutorialCopy: document.querySelector("#tutorial-copy"),
+  tutorialVisual: document.querySelector("#tutorial-visual"),
+  tutorialDots: document.querySelector("#tutorial-dots"),
+  tutorialPrev: document.querySelector("#tutorial-prev"),
+  tutorialNext: document.querySelector("#tutorial-next")
 };
 
 let deferredInstallPrompt = null;
@@ -893,6 +957,7 @@ let audioContext = null;
 const audioFallbackCache = new Map();
 let soundEnabled = localStorage.getItem("party-box-sound") !== "off";
 let digitalTimerInterval = null;
+let tutorialStepIndex = 0;
 
 function createDeck() {
   return suits.flatMap((suit) =>
@@ -930,6 +995,24 @@ function taskText(rank) {
   return ruleBook[rank].text.replaceAll("{penalty}", penaltyWord());
 }
 
+function formatNumber(value) {
+  return new Intl.NumberFormat("tr-TR", {
+    maximumFractionDigits: 2
+  }).format(value);
+}
+
+function formatNumericAnswer(card) {
+  if (!card || typeof card.answer !== "number") return "";
+  const value = formatNumber(card.answer);
+  return card.unit ? `${value} ${card.unit}` : value;
+}
+
+function parseGuessValue(value) {
+  if (value === "" || value === null || value === undefined) return null;
+  const parsed = Number(String(value).replace(",", "."));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
 function fillTemplate(text, playerName) {
   return escapeHTML(text)
     .replaceAll("{player}", escapeHTML(playerName))
@@ -944,10 +1027,136 @@ function pickOne(items) {
   return items[Math.floor(Math.random() * items.length)];
 }
 
+function playerNameById(id) {
+  return state.players.find((player) => player.id === id)?.name || "Oyuncu";
+}
+
+function ensureTeams() {
+  const playerIds = state.players.map((player) => player.id);
+  const validIds = new Set(playerIds);
+  const source = state.teams || { a: [], b: [] };
+  const seenIds = new Set();
+  const cleanTeam = (ids = []) =>
+    ids.filter((id) => {
+      if (!validIds.has(id) || seenIds.has(id)) return false;
+      seenIds.add(id);
+      return true;
+    });
+  const nextTeams = {
+    a: cleanTeam(source.a),
+    b: cleanTeam(source.b)
+  };
+  const assigned = new Set([...nextTeams.a, ...nextTeams.b]);
+
+  playerIds.forEach((id) => {
+    if (assigned.has(id)) return;
+    const target = nextTeams.a.length <= nextTeams.b.length ? nextTeams.a : nextTeams.b;
+    target.push(id);
+  });
+
+  while (Math.abs(nextTeams.a.length - nextTeams.b.length) > 1) {
+    const from = nextTeams.a.length > nextTeams.b.length ? nextTeams.a : nextTeams.b;
+    const to = from === nextTeams.a ? nextTeams.b : nextTeams.a;
+    const moved = from.pop();
+    if (moved) to.push(moved);
+  }
+
+  state.teams = nextTeams;
+}
+
+function assignTeams() {
+  const ids = shuffle(state.players.map((player) => player.id));
+  state.teams = {
+    a: ids.filter((_, index) => index % 2 === 0),
+    b: ids.filter((_, index) => index % 2 === 1)
+  };
+  saveSnapshot();
+  renderTeams();
+  renderDigitalScore();
+  replayAnimation(els.teamAList?.closest(".team-builder"), "is-updated");
+}
+
+function teamNames(team) {
+  ensureTeams();
+  return (state.teams[team] || []).map(playerNameById);
+}
+
+function teamLabel(team, compact = false) {
+  const names = teamNames(team);
+  const label = `Takım ${team.toUpperCase()}`;
+  if (!names.length) return label;
+  const visibleNames = compact && names.length > 2 ? `${names.slice(0, 2).join(", ")} +${names.length - 2}` : names.join(", ");
+  return `${label} (${visibleNames})`;
+}
+
+function teamForPlayer(id) {
+  ensureTeams();
+  return state.teams.a.includes(id) ? "a" : "b";
+}
+
+function renderTeams() {
+  if (!els.teamAList || !els.teamBList) return;
+  ensureTeams();
+  const renderTeam = (team) => {
+    const ids = state.teams[team] || [];
+    if (!ids.length) {
+      return '<span class="team-empty">Oyuncu bekliyor</span>';
+    }
+    return ids
+      .map((id) => `<span class="team-chip">${escapeHTML(playerNameById(id))}</span>`)
+      .join("");
+  };
+
+  els.teamAList.innerHTML = renderTeam("a");
+  els.teamBList.innerHTML = renderTeam("b");
+}
+
+function awardDigitalPoint(team) {
+  state.digitalScore[team] += 1;
+  touchPulse(12);
+  renderDigitalScore();
+  replayAnimation(els.digitalScore, "is-updated");
+}
+
 function setButton(button, text, hidden = false) {
   if (!button) return;
   button.textContent = text;
   button.hidden = hidden;
+}
+
+function digitalCardsForCurrentMode() {
+  const game = digitalGames[state.digitalMode];
+  if (!game?.cards?.length) return [];
+  if (game.type !== "tell" && game.type !== "quiz" && game.type !== "identity") return game.cards;
+  const cards = game.cards.filter((card) => card.difficulty === state.digitalDifficulty);
+  return cards.length ? cards : game.cards;
+}
+
+function setDigitalDifficulty(difficulty) {
+  if (!difficultyLabels[difficulty]) return;
+  state.digitalDifficulty = difficulty;
+  const game = digitalGames[state.digitalMode];
+  if (game?.type === "tell" || game?.type === "quiz" || game?.type === "identity") {
+    state.digitalDeck = [];
+    state.digitalCurrent = null;
+    state.digitalRound = 0;
+    drawDigitalCard();
+  } else {
+    renderDigitalDifficulty();
+  }
+  saveSnapshot();
+}
+
+function renderDigitalDifficulty() {
+  if (!els.digitalDifficulty) return;
+  const gameType = state.digitalMode && digitalGames[state.digitalMode]?.type;
+  const hasDifficulty = gameType === "tell" || gameType === "quiz" || gameType === "identity";
+  els.digitalDifficulty.hidden = !hasDifficulty;
+  els.difficultyButtons.forEach((button) => {
+    const isActive = button.dataset.difficulty === state.digitalDifficulty;
+    button.classList.toggle("is-active", isActive);
+    button.setAttribute("aria-pressed", String(isActive));
+  });
 }
 
 function stopDigitalTimer() {
@@ -1134,6 +1343,8 @@ function setupInteractionFeedback() {
     const soundType =
       button.id === "draw-card" || button.id === "story-next"
         ? "draw"
+        : button.id?.startsWith("digital-") && button.textContent.includes("+1")
+          ? "score"
         : button.dataset.modeTarget
           ? "mode"
           : button.dataset.mode
@@ -1175,6 +1386,94 @@ function setupIntro() {
   els.introScreen.addEventListener("touchstart", closeIntro, { once: true });
 }
 
+function renderTutorial() {
+  if (!els.tutorialOverlay) return;
+  const step = tutorialSteps[tutorialStepIndex];
+  els.tutorialTitle.textContent = step.title;
+  els.tutorialCopy.textContent = step.copy;
+  els.tutorialVisual.dataset.tone = step.tone;
+  els.tutorialPrev.disabled = tutorialStepIndex === 0;
+  els.tutorialNext.textContent = tutorialStepIndex === tutorialSteps.length - 1 ? "Başla" : "İleri";
+  els.tutorialDots.innerHTML = tutorialSteps
+    .map(
+      (_, index) =>
+        `<button type="button" data-tutorial-dot="${index}" aria-label="${index + 1}. adım" class="${index === tutorialStepIndex ? "is-active" : ""}"></button>`
+    )
+    .join("");
+}
+
+function openTutorial(startIndex = 0, markSeen = false) {
+  if (!els.tutorialOverlay) return;
+  tutorialStepIndex = Math.min(Math.max(startIndex, 0), tutorialSteps.length - 1);
+  renderTutorial();
+  els.tutorialOverlay.hidden = false;
+  document.body.classList.add("tutorial-open");
+  replayAnimation(els.tutorialOverlay.querySelector(".tutorial-card"), "is-entering");
+  if (markSeen) {
+    localStorage.setItem("party-box-tutorial-seen-v1", "yes");
+  }
+}
+
+function closeTutorial() {
+  if (!els.tutorialOverlay) return;
+  els.tutorialOverlay.hidden = true;
+  document.body.classList.remove("tutorial-open");
+  localStorage.setItem("party-box-tutorial-seen-v1", "yes");
+}
+
+function maybeShowTutorial() {
+  if (localStorage.getItem("party-box-tutorial-seen-v1") === "yes") return;
+  if (state.activeMode !== "home") return;
+  window.setTimeout(() => {
+    if (
+      state.activeMode === "home" &&
+      localStorage.getItem("party-box-tutorial-seen-v1") !== "yes" &&
+      (!els.tutorialOverlay || els.tutorialOverlay.hidden) &&
+      (!els.introScreen || els.introScreen.hidden)
+    ) {
+      openTutorial(0, true);
+    }
+  }, 3100);
+}
+
+function setupTutorial() {
+  if (!els.tutorialOverlay) return;
+  els.tutorialTrigger?.addEventListener("click", () => openTutorial(0, true));
+  els.tutorialClose?.addEventListener("click", closeTutorial);
+  els.tutorialPrev?.addEventListener("click", () => {
+    tutorialStepIndex = Math.max(0, tutorialStepIndex - 1);
+    renderTutorial();
+    replayAnimation(els.tutorialVisual, "is-stepping");
+  });
+  els.tutorialNext?.addEventListener("click", () => {
+    if (tutorialStepIndex >= tutorialSteps.length - 1) {
+      closeTutorial();
+      return;
+    }
+    tutorialStepIndex += 1;
+    renderTutorial();
+    replayAnimation(els.tutorialVisual, "is-stepping");
+  });
+  els.tutorialDots?.addEventListener("click", (event) => {
+    const dot = event.target.closest("[data-tutorial-dot]");
+    if (!dot) return;
+    tutorialStepIndex = Number(dot.dataset.tutorialDot);
+    renderTutorial();
+    replayAnimation(els.tutorialVisual, "is-stepping");
+  });
+  els.tutorialOverlay.addEventListener("click", (event) => {
+    if (event.target === els.tutorialOverlay) {
+      closeTutorial();
+    }
+  });
+  document.addEventListener("keydown", (event) => {
+    if (event.key === "Escape" && !els.tutorialOverlay.hidden) {
+      closeTutorial();
+    }
+  });
+  maybeShowTutorial();
+}
+
 function openDrawer() {
   els.drawer.hidden = false;
   els.drawerBackdrop.hidden = false;
@@ -1201,16 +1500,19 @@ function clampTurn() {
 }
 
 function saveSnapshot() {
+  ensureTeams();
   localStorage.setItem(
     "abdi-party-box",
     JSON.stringify({
       players: state.players,
+      teams: state.teams,
       activeRules: state.activeRules,
       mode: state.mode,
       activeCategory: state.activeCategory,
       activeMode: state.activeMode,
       storyMode: state.storyMode,
-      digitalMode: state.digitalMode
+      digitalMode: state.digitalMode,
+      digitalDifficulty: state.digitalDifficulty
     })
   );
 }
@@ -1227,6 +1529,12 @@ function loadSnapshot() {
         name: String(player.name || "Oyuncu").slice(0, 18),
         score: Number(player.score) || 0
       }));
+    }
+    if (parsed.teams && Array.isArray(parsed.teams.a) && Array.isArray(parsed.teams.b)) {
+      state.teams = {
+        a: parsed.teams.a,
+        b: parsed.teams.b
+      };
     }
     if (Array.isArray(parsed.activeRules)) {
       state.activeRules = parsed.activeRules;
@@ -1248,6 +1556,9 @@ function loadSnapshot() {
     }
     if (parsed.digitalMode && digitalGames[parsed.digitalMode]) {
       state.digitalMode = parsed.digitalMode;
+    }
+    if (parsed.digitalDifficulty && difficultyLabels[parsed.digitalDifficulty]) {
+      state.digitalDifficulty = parsed.digitalDifficulty;
     }
   } catch {
     localStorage.removeItem("abdi-party-box");
@@ -1273,6 +1584,9 @@ function resetDigitalState(mode) {
   state.digitalAssignments = [];
   state.digitalPhaseIndex = 0;
   state.digitalScore = { a: 0, b: 0 };
+  state.digitalGuesses = {};
+  state.digitalWinner = null;
+  state.digitalHintVisible = false;
   state.digitalSeconds = 0;
   state.beerPong = null;
   state.vampire = null;
@@ -1282,17 +1596,21 @@ function resetDigitalState(mode) {
 function drawDigitalCard() {
   const game = digitalGames[state.digitalMode];
   if (!game || !game.cards?.length) return;
+  const availableCards = digitalCardsForCurrentMode();
   if (state.digitalDeck.length === 0) {
-    state.digitalDeck = shuffle(game.cards);
+    state.digitalDeck = shuffle(availableCards);
   }
   state.digitalRound += 1;
   state.digitalCurrent = state.digitalDeck.pop();
   state.digitalRevealVisible = false;
+  state.digitalGuesses = {};
+  state.digitalWinner = null;
+  state.digitalHintVisible = false;
   state.digitalHistory.unshift({
     label:
       typeof state.digitalCurrent === "string"
         ? state.digitalCurrent
-        : state.digitalCurrent.word || state.digitalCurrent.question || state.digitalCurrent.place || "Kart",
+        : state.digitalCurrent.name || state.digitalCurrent.word || state.digitalCurrent.question || state.digitalCurrent.place || "Kart",
     round: state.digitalRound
   });
   state.digitalHistory = state.digitalHistory.slice(0, 6);
@@ -1391,7 +1709,7 @@ function initDigitalGame(mode) {
 
   resetDigitalState(mode);
   if (game.type === "tell" || game.type === "quiz" || game.type === "identity") {
-    state.digitalDeck = shuffle(game.cards);
+    state.digitalDeck = [];
     drawDigitalCard();
   } else if (game.type === "secretLocation") {
     assignSecretLocation();
@@ -1680,7 +1998,9 @@ function renamePlayer(id, name) {
   if (!player) return;
   player.name = name.trim() || "Oyuncu";
   saveSnapshot();
+  renderTeams();
   renderScoreboard();
+  renderDigitalScore();
 }
 
 function updateScore(id, delta) {
@@ -2070,10 +2390,19 @@ function renderDigitalScore() {
   if (game.type === "beerPong" && state.beerPong) {
     const aLeft = state.beerPong.a.filter(Boolean).length;
     const bLeft = state.beerPong.b.filter(Boolean).length;
-    els.digitalScore.innerHTML = `<span>A kupası: ${aLeft}</span><span>B kupası: ${bLeft}</span>`;
+    els.digitalScore.innerHTML = `<span>${escapeHTML(teamLabel("a", true))} kupası: ${aLeft}</span><span>${escapeHTML(teamLabel("b", true))} kupası: ${bLeft}</span>`;
     return;
   }
-  els.digitalScore.innerHTML = `<span>Takım A: ${state.digitalScore.a}</span><span>Takım B: ${state.digitalScore.b}</span>`;
+  if (game.type === "secretLocation" || game.type === "undercover") {
+    els.digitalScore.innerHTML = `<span>${state.players.length} oyuncu</span><span>Gizli rol turu</span>`;
+    return;
+  }
+  if (game.type === "roles") {
+    const aliveCount = state.vampire ? alivePlayers().length : state.players.length;
+    els.digitalScore.innerHTML = `<span>Hayatta: ${aliveCount}</span><span>Gün: ${state.vampire?.day || 1}</span>`;
+    return;
+  }
+  els.digitalScore.innerHTML = `<span>${escapeHTML(teamLabel("a", true))}: ${state.digitalScore.a}</span><span>${escapeHTML(teamLabel("b", true))}: ${state.digitalScore.b}</span>`;
 }
 
 function renderSecretAssignment(game) {
@@ -2214,6 +2543,104 @@ function renderBeerPong() {
   `;
 }
 
+function calculateQuizWinner() {
+  const card = state.digitalCurrent;
+  if (!card || typeof card.answer !== "number") {
+    state.digitalWinner = null;
+    return null;
+  }
+
+  const guesses = state.players
+    .map((player) => {
+      const value = state.digitalGuesses[player.id];
+      return Number.isFinite(value)
+        ? {
+            playerId: player.id,
+            playerName: player.name,
+            team: teamForPlayer(player.id),
+            value,
+            diff: Math.abs(value - card.answer)
+          }
+        : null;
+    })
+    .filter(Boolean);
+
+  if (!guesses.length) {
+    state.digitalWinner = null;
+    return null;
+  }
+
+  const bestDiff = Math.min(...guesses.map((guess) => guess.diff));
+  const winners = guesses.filter((guess) => guess.diff === bestDiff);
+  state.digitalWinner = {
+    answer: card.answer,
+    unit: card.unit || "",
+    winners,
+    guesses
+  };
+  return state.digitalWinner;
+}
+
+function renderQuizGuessInputs() {
+  const unit = state.digitalCurrent?.unit || "";
+  return `
+    <div class="guess-entry-grid" aria-label="Oyuncu tahminleri">
+      ${state.players
+        .map((player) => {
+          const value = state.digitalGuesses[player.id];
+          return `
+            <label class="guess-entry">
+              <span>${escapeHTML(player.name)}</span>
+              <input
+                type="number"
+                inputmode="decimal"
+                step="any"
+                data-quiz-guess="${player.id}"
+                value="${Number.isFinite(value) ? escapeHTML(String(value)) : ""}"
+                placeholder="${unit ? escapeHTML(unit) : "Tahmin"}"
+              />
+            </label>
+          `;
+        })
+        .join("")}
+    </div>
+  `;
+}
+
+function renderQuizWinner() {
+  if (!state.digitalRevealVisible) return "";
+  const winner = state.digitalWinner || calculateQuizWinner();
+  if (!winner) {
+    return '<div class="winner-box"><strong>Henüz kazanan yok</strong><span>Önce oyuncuların tahminlerini gir.</span></div>';
+  }
+
+  const winnerNames = winner.winners
+    .map(
+      (item) =>
+        `${escapeHTML(item.playerName)} (${escapeHTML(teamLabel(item.team, true))}, tahmin ${escapeHTML(formatNumber(item.value))}, fark ${escapeHTML(formatNumber(item.diff))})`
+    )
+    .join("<br>");
+
+  return `
+    <div class="winner-box">
+      <strong>Kazanan</strong>
+      <span>${winnerNames}</span>
+    </div>
+  `;
+}
+
+function awardQuizWinner() {
+  const winner = state.digitalWinner || calculateQuizWinner();
+  if (!winner) return;
+  [...new Set(winner.winners.map((item) => item.team))].forEach((team) => {
+    state.digitalScore[team] += 1;
+  });
+  playSound("score");
+  touchPulse(14);
+  renderDigitalScore();
+  replayAnimation(els.digitalScore, "is-updated");
+}
+
 function renderDigitalGame() {
   const game = digitalGames[state.digitalMode];
   if (!game) return;
@@ -2226,43 +2653,64 @@ function renderDigitalGame() {
       ${game.guide.map((item) => `<li>${escapeHTML(item)}</li>`).join("")}
     </ol>
   `;
+  renderDigitalDifficulty();
 
   renderDigitalTimer();
   renderDigitalScore();
+  setButton(els.digitalQuaternary, "", true);
 
   if (game.type === "tell") {
     const card = state.digitalCurrent;
     els.digitalStage.innerHTML = `
-      <span class="story-card-tag">Tur ${state.digitalRound}</span>
+      <span class="story-card-tag">Tur ${state.digitalRound} · ${escapeHTML(difficultyLabels[state.digitalDifficulty])}</span>
       <h3>${escapeHTML(card?.word || "Kart çek")}</h3>
       <p>Anlatırken bu kelimeleri kullanma:</p>
       <div class="forbidden-list">${(card?.forbidden || []).map((item) => `<span>${escapeHTML(item)}</span>`).join("")}</div>
     `;
     setButton(els.digitalPrimary, "Yeni kart");
-    setButton(els.digitalSecondary, "Doğru +1");
+    setButton(els.digitalSecondary, "Takım A +1");
     setButton(els.digitalTertiary, "Pas");
+    setButton(els.digitalQuaternary, "Takım B +1");
   } else if (game.type === "quiz") {
     const card = state.digitalCurrent;
+    if (state.digitalRevealVisible) {
+      calculateQuizWinner();
+    }
     els.digitalStage.innerHTML = `
-      <span class="story-card-tag">Bil Bakalım</span>
+      <span class="story-card-tag">Sayı tahmini · ${escapeHTML(difficultyLabels[state.digitalDifficulty])}</span>
       <h3>${escapeHTML(card?.question || "Soru çek")}</h3>
-      <p><strong>İpucu:</strong> ${escapeHTML(card?.hint || "")}</p>
-      ${state.digitalRevealVisible ? `<div class="answer-box">${escapeHTML(card?.answer || "")}</div>` : ""}
+      <div class="hint-panel">
+        <button class="hint-toggle" type="button" data-quiz-hint-toggle>
+          ${state.digitalHintVisible ? "Yardımı gizle" : "Yardım göster"}
+        </button>
+        ${state.digitalHintVisible ? `<p class="hint-copy">${escapeHTML(card?.hint || "")}</p>` : ""}
+      </div>
+      <p class="guess-instruction">Herkes tahminini söylesin; cevabı açınca gerçek değere en yakın olan puanı alır.</p>
+      ${renderQuizGuessInputs()}
+      ${
+        state.digitalRevealVisible
+          ? `<div class="answer-box"><strong>Cevap:</strong><span>${escapeHTML(formatNumericAnswer(card))}</span></div>`
+          : ""
+      }
+      ${renderQuizWinner()}
     `;
     setButton(els.digitalPrimary, "Yeni soru");
     setButton(els.digitalSecondary, state.digitalRevealVisible ? "Cevabı gizle" : "Cevabı aç");
-    setButton(els.digitalTertiary, "Doğru +1");
+    setButton(els.digitalTertiary, "Kazanana +1");
+    setButton(els.digitalQuaternary, "Tahminleri temizle");
   } else if (game.type === "identity") {
     const card = state.digitalCurrent;
+    const identityName = typeof card === "string" ? card : card?.name;
     const player = nextPlayer();
     els.digitalStage.innerHTML = `
-      <span class="story-card-tag">${escapeHTML(player.name)} tahmin ediyor</span>
-      <h3>${escapeHTML(card || "Kimlik çek")}</h3>
+      <span class="story-card-tag">${escapeHTML(player.name)} tahmin ediyor · ${escapeHTML(difficultyLabels[state.digitalDifficulty])}</span>
+      <h3>${escapeHTML(identityName || "Kimlik çek")}</h3>
       <p>Telefonu tahmin eden oyuncuya göstermeden masaya doğru tut. Sadece evet-hayır soruları.</p>
     `;
     setButton(els.digitalPrimary, "Yeni kimlik");
-    setButton(els.digitalSecondary, "Bildim +1");
+    setButton(els.digitalSecondary, "Takım A +1");
     setButton(els.digitalTertiary, "Sıradaki");
+    setButton(els.digitalQuaternary, "Takım B +1");
   } else if (game.type === "secretLocation" || game.type === "undercover" || game.type === "roles") {
     els.digitalStage.innerHTML = renderSecretAssignment(game);
     const revealedDone = state.digitalRevealIndex >= state.players.length;
@@ -2329,6 +2777,7 @@ function render() {
   renderCategoryTabs();
   renderScreens();
   renderPlayers();
+  renderTeams();
   renderScoreboard();
   renderCard();
   renderActiveRules();
@@ -2367,14 +2816,17 @@ function handleDigitalSecondary() {
   touchPulse(8);
 
   if (game.type === "tell") {
-    state.digitalScore.a += 1;
+    awardDigitalPoint("a");
     drawDigitalCard();
   } else if (game.type === "quiz") {
     state.digitalRevealVisible = !state.digitalRevealVisible;
+    if (state.digitalRevealVisible) {
+      calculateQuizWinner();
+    }
     renderDigitalGame();
     replayAnimation(els.digitalStage, "is-dealt");
   } else if (game.type === "identity") {
-    state.digitalScore.a += 1;
+    awardDigitalPoint("a");
     state.turnIndex = (state.turnIndex + 1) % state.players.length;
     drawDigitalCard();
   } else if (game.type === "secretLocation" || game.type === "undercover") {
@@ -2398,9 +2850,7 @@ function handleDigitalTertiary() {
   if (game.type === "tell") {
     drawDigitalCard();
   } else if (game.type === "quiz") {
-    state.digitalScore.a += 1;
-    renderDigitalGame();
-    replayAnimation(els.digitalScore, "is-updated");
+    awardQuizWinner();
   } else if (game.type === "identity") {
     state.turnIndex = (state.turnIndex + 1) % state.players.length;
     drawDigitalCard();
@@ -2411,6 +2861,27 @@ function handleDigitalTertiary() {
   }
 }
 
+function handleDigitalQuaternary() {
+  const game = digitalGames[state.digitalMode];
+  if (!game) return;
+  touchPulse(8);
+
+  if (game.type === "tell") {
+    awardDigitalPoint("b");
+    drawDigitalCard();
+  } else if (game.type === "quiz") {
+    state.digitalGuesses = {};
+    state.digitalWinner = null;
+    state.digitalRevealVisible = false;
+    renderDigitalGame();
+    replayAnimation(els.digitalStage, "is-dealt");
+  } else if (game.type === "identity") {
+    awardDigitalPoint("b");
+    state.turnIndex = (state.turnIndex + 1) % state.players.length;
+    drawDigitalCard();
+  }
+}
+
 els.form.addEventListener("submit", (event) => {
   event.preventDefault();
   addPlayer(els.playerName.value);
@@ -2418,6 +2889,7 @@ els.form.addEventListener("submit", (event) => {
   els.playerName.focus();
 });
 
+els.shuffleTeams?.addEventListener("click", assignTeams);
 els.drawCard.addEventListener("click", drawCard);
 els.startGame.addEventListener("click", startGame);
 els.resetDeck.addEventListener("click", resetDeck);
@@ -2437,7 +2909,31 @@ els.abdiBack.addEventListener("click", () => setActiveMode("home"));
 els.digitalPrimary.addEventListener("click", handleDigitalPrimary);
 els.digitalSecondary.addEventListener("click", handleDigitalSecondary);
 els.digitalTertiary.addEventListener("click", handleDigitalTertiary);
+els.digitalQuaternary?.addEventListener("click", handleDigitalQuaternary);
+els.digitalStage.addEventListener("input", (event) => {
+  const input = event.target.closest("[data-quiz-guess]");
+  if (!input || state.digitalMode !== "guess") return;
+  const playerId = input.dataset.quizGuess;
+  const value = parseGuessValue(input.value);
+  if (value === null) {
+    delete state.digitalGuesses[playerId];
+  } else {
+    state.digitalGuesses[playerId] = value;
+  }
+  if (state.digitalRevealVisible) {
+    calculateQuizWinner();
+    renderDigitalGame();
+  }
+});
 els.digitalStage.addEventListener("click", (event) => {
+  const hintButton = event.target.closest("[data-quiz-hint-toggle]");
+  if (hintButton && state.digitalMode === "guess") {
+    state.digitalHintVisible = !state.digitalHintVisible;
+    renderDigitalGame();
+    replayAnimation(els.digitalStage, "is-dealt");
+    return;
+  }
+
   const vampireButton = event.target.closest("[data-vampire-action]");
   if (vampireButton && state.digitalMode === "vampire") {
     selectVampireTarget(vampireButton.dataset.vampireAction, vampireButton.dataset.playerId);
@@ -2474,6 +2970,10 @@ els.categoryTabs.forEach((button) => {
   button.addEventListener("click", () => setActiveCategory(button.dataset.categoryTarget));
 });
 
+els.difficultyButtons.forEach((button) => {
+  button.addEventListener("click", () => setDigitalDifficulty(button.dataset.difficulty));
+});
+
 els.modeButtons.forEach((button) => {
   button.addEventListener("click", () => setActiveMode(button.dataset.modeTarget));
 });
@@ -2495,3 +2995,4 @@ setupInstallPrompt();
 setupIntro();
 setupInteractionFeedback();
 render();
+setupTutorial();

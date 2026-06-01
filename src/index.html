@@ -62,7 +62,7 @@
 
       <button class="drawer-home" type="button" data-menu-home>Ana seçim ekranı</button>
 
-      <div class="drawer-section">
+      <div class="drawer-section is-party">
         <strong>Görev Party</strong>
         <button type="button" data-menu-target="friends" data-menu-category="party">Arkadaş Masası</button>
         <button type="button" data-menu-target="confession" data-menu-category="party">Sır Açma</button>
@@ -71,27 +71,27 @@
         <button type="button" data-menu-target="couples" data-menu-category="party">İki Kişilik Hikaye</button>
       </div>
 
-      <div class="drawer-section">
+      <div class="drawer-section is-guess">
         <strong>Tahmin & Anlatım</strong>
         <button type="button" data-menu-target="tell" data-menu-category="guess">Anlat Bakalım</button>
         <button type="button" data-menu-target="guess" data-menu-category="guess">Bil Bakalım</button>
         <button type="button" data-menu-target="whoami" data-menu-category="guess">Ben Kimim</button>
       </div>
 
-      <div class="drawer-section">
+      <div class="drawer-section is-hidden">
         <strong>Gizli Roller</strong>
         <button type="button" data-menu-target="spy" data-menu-category="hidden">Spy</button>
         <button type="button" data-menu-target="vampire" data-menu-category="hidden">Vampir Köylü</button>
         <button type="button" data-menu-target="undercover" data-menu-category="hidden">Undercover</button>
       </div>
 
-      <div class="drawer-section">
+      <div class="drawer-section is-table">
         <strong>Kutu & Masa</strong>
         <button type="button" data-menu-target="abdi" data-menu-category="table">Abdi</button>
         <button type="button" data-menu-target="beerPong" data-menu-category="table">Beer Pong</button>
       </div>
 
-      <div class="drawer-section">
+      <div class="drawer-section is-premium">
         <strong>Premium</strong>
         <button type="button" data-menu-target="premium" data-menu-category="premium">Gece Kilidi</button>
       </div>
@@ -285,6 +285,26 @@
           <p class="safety-note" id="safety-note">
             Shot modu yalnızca 18+ oyuncular ve sorumlu tüketim içindir.
           </p>
+
+          <div class="team-builder" aria-labelledby="team-title">
+            <div class="team-builder-head">
+              <div>
+                <p class="overline">Takımlar</p>
+                <h3 id="team-title">İsimle dağıt</h3>
+              </div>
+              <button class="tool-button compact" type="button" id="shuffle-teams">Karıştır</button>
+            </div>
+            <div class="team-grid" aria-label="Takım listeleri">
+              <div class="team-card">
+                <strong>Takım A</strong>
+                <div class="team-list" id="team-a-list"></div>
+              </div>
+              <div class="team-card">
+                <strong>Takım B</strong>
+                <div class="team-list" id="team-b-list"></div>
+              </div>
+            </div>
+          </div>
         </form>
 
         <aside class="panel quick-rules" aria-labelledby="quick-title">
@@ -293,10 +313,14 @@
               <p class="overline">Kılavuz</p>
               <h2 id="quick-title">Oyun akışı</h2>
             </div>
-            <button class="tool-button" type="button" id="print-rules">
-              <span aria-hidden="true">P</span>
-              Yazdır
-            </button>
+            <div class="quick-actions">
+              <button class="tool-button" type="button" id="tutorial-trigger">
+                Nasıl oynanır?
+              </button>
+              <button class="tool-button" type="button" id="print-rules">
+                Yazdır
+              </button>
+            </div>
           </div>
 
           <div class="kit-strip">
@@ -379,6 +403,15 @@
 
           <div class="digital-meta" id="digital-meta"></div>
 
+          <div class="difficulty-panel" id="digital-difficulty" hidden>
+            <span>Zorluk</span>
+            <div class="difficulty-options" role="group" aria-label="Oyun zorluk seviyesi">
+              <button class="segmented" type="button" data-difficulty="easy">Kolay</button>
+              <button class="segmented is-active" type="button" data-difficulty="medium">Orta</button>
+              <button class="segmented" type="button" data-difficulty="hard">Zor</button>
+            </div>
+          </div>
+
           <div class="digital-hud">
             <div class="digital-timer" id="digital-timer">
               <span>--</span>
@@ -393,6 +426,7 @@
             <button class="tool-button primary" type="button" id="digital-primary">Başlat</button>
             <button class="tool-button" type="button" id="digital-secondary">Sonraki</button>
             <button class="tool-button" type="button" id="digital-tertiary">Pas</button>
+            <button class="tool-button" type="button" id="digital-quaternary" hidden>Takım B +1</button>
           </div>
         </div>
 
@@ -540,6 +574,43 @@
         </a>
       </footer>
     </main>
+
+    <aside
+      class="tutorial-overlay"
+      id="tutorial-overlay"
+      role="dialog"
+      aria-modal="true"
+      aria-labelledby="tutorial-title"
+      hidden
+    >
+      <div class="tutorial-card">
+        <button class="icon-button ghost tutorial-close" type="button" id="tutorial-close" aria-label="Öğreticiyi kapat">
+          <span aria-hidden="true">×</span>
+        </button>
+
+        <div class="tutorial-visual" id="tutorial-visual" aria-hidden="true">
+          <span class="tutorial-token is-player">A</span>
+          <span class="tutorial-token is-team">B</span>
+          <span class="tutorial-token is-card">?</span>
+          <div class="tutorial-board">
+            <span></span>
+            <span></span>
+            <span></span>
+          </div>
+        </div>
+
+        <p class="overline">Hızlı başlangıç</p>
+        <h2 id="tutorial-title">Masayı kur</h2>
+        <p id="tutorial-copy">Oyuncuları ekle, takımları dağıt ve kategori seçerek oyuna gir.</p>
+
+        <div class="tutorial-dots" id="tutorial-dots" aria-label="Öğretici ilerlemesi"></div>
+
+        <div class="tutorial-actions">
+          <button class="tool-button" type="button" id="tutorial-prev">Geri</button>
+          <button class="tool-button primary" type="button" id="tutorial-next">İleri</button>
+        </div>
+      </div>
+    </aside>
 
     <aside class="install-sheet" id="install-sheet" aria-live="polite" hidden>
       <img src="./icons/icon.svg" alt="" />
